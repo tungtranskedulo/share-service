@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("org.springframework.boot") version "2.6.7"
+    id("io.spring.dependency-management")
     kotlin("jvm")
     kotlin("plugin.spring")
 }
