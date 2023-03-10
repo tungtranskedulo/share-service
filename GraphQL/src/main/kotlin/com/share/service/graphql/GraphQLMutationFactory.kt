@@ -1,9 +1,17 @@
 package com.share.service.graphql
 
 import com.fasterxml.jackson.annotation.JsonValue
-import com.share.service.config.Json
-import com.share.service.graphql.GraphQLFieldsHandler.buildAvailabilities
+import com.share.service.graphql.GraphQLMutationFactory.Companion.schemaBuilder
 import com.share.service.graphql.GraphQLMutationFactory.Keys.UID
+import com.share.service.graphql.GraphQLSchemaBuilder.buildAccount
+import com.share.service.graphql.GraphQLSchemaBuilder.buildActivity
+import com.share.service.graphql.GraphQLSchemaBuilder.buildAvailability
+import com.share.service.graphql.GraphQLSchemaBuilder.buildContact
+import com.share.service.graphql.GraphQLSchemaBuilder.buildDefaultEventModel
+import com.share.service.graphql.GraphQLSchemaBuilder.buildJob
+import com.share.service.graphql.GraphQLSchemaBuilder.buildJobAllocation
+import com.share.service.graphql.GraphQLSchemaBuilder.buildJobTask
+import com.share.service.graphql.GraphQLSchemaBuilder.buildResources
 import java.util.*
 
 data class ObjectId(@get:JsonValue val value: String) {
@@ -14,12 +22,20 @@ class GraphQLMutationFactory {
 
     object Keys {
         const val UID = "UID"
-        const val STATUS = "Status"
-        const val JOB_STATUS = "JobStatus"
-        const val NOTIFICATION_TYPE = "NotificationType"
-        const val AVAILABILITY_TYPE = "AvailabilityType"
-        const val TYPE = "Type"
         const val CUSTOM_FIELDS = "customFields"
+    }
+
+    companion object {
+        val schemaBuilder = mapOf(
+            Schema.Accounts.name to SchemaBuilder(::buildAccount),
+            Schema.Activities.name to SchemaBuilder(::buildActivity),
+            Schema.Contacts.name to SchemaBuilder(::buildContact),
+            Schema.JobTasks.name to SchemaBuilder(::buildJobTask),
+            Schema.Resources.name to SchemaBuilder(::buildResources),
+            Schema.Availabilities.name to SchemaBuilder(::buildAvailability),
+            Schema.Jobs.name to SchemaBuilder(::buildJob),
+            Schema.JobAllocations.name to SchemaBuilder(::buildJobAllocation),
+        )
     }
 
     fun toUpdateMutation(
@@ -54,18 +70,13 @@ class GraphQLMutationFactory {
     private fun toGraphQLFieldsV1(
         schema: Schema,
         id: ObjectId?,
-        eventModel: Map<String, Any?>
+        eventModel: Map<String, Any?>,
     ): Map<String, Any?> {
-        val map = eventModel.toMutableMap()
-            .also {
-                if (id != null) it[Keys.UID] = id.value
-            }
-            .liftCustomFields()
+        return eventModel.toMutableMap()
+            .also { if (id != null) it[UID] = id.value }
+            .mapKeys { entry -> entry.key.replaceFirstChar { it.titlecase() } }
             .handleSchema(schema)
-            .removeNullValuesByKey(Keys.UID)
-
-        println("map $map")
-        return map
+            .liftCustomFields()
     }
 
 }
@@ -73,15 +84,6 @@ class GraphQLMutationFactory {
 @Suppress("UNCHECKED_CAST")
 fun <K, V> Map<K, V>.filterNullValues(): MutableMap<K, V> {
     return this.filter { it.value != null }.toMutableMap()
-}
-
-@Suppress("UNCHECKED_CAST")
-fun <K, V> Map<K, V>.removeNullValuesByKey(key: K): MutableMap<K, V> {
-    val map = this.toMutableMap()
-    if ((map[key] as String).isNullOrEmpty()) {
-        map.remove(key)
-    }
-    return map
 }
 
 /**
@@ -108,17 +110,40 @@ fun <V> Map<String, V?>.liftCustomFields(): Map<String, V?> {
     }
 }
 
+
 @Suppress("UNCHECKED_CAST")
 fun <V> Map<String, V?>.handleSchema(schema: Schema): Map<String, Any?> {
-    val map = this.toMutableMap()
-    val handler = initSchemaHandler(map)
-    return handler[schema.name]?.invoke() ?: map
+    return schemaBuilder[schema.name]?.let { it(this) } ?: buildDefaultEventModel(this)
 }
 
-private fun <V> initSchemaHandler(map: Map<String, V?>): Map<String, () -> Map<String, Any?>> {
-    val commands = mutableMapOf<String, () -> Map<String, Any?>>()
-    commands[Schema.Availabilities.name] = { buildAvailabilities(map) }
+data class GraphQLMutation(
+    val schemaName: String,
+    val mutationName: String,
+    val inputType: String,
+    val keysAndValues: Any,
+    val inputVariable: String = "input",
+    val parameterName: String = "input",
+)
 
-    return commands
-}
+fun defaultUpdateMutationType(schemaName: String) = "Update$schemaName"
+fun defaultInsertMutationType(schemaName: String) = "New$schemaName"
+fun defaultDeleteMutationType() = "ID"
+fun defaultUpdateMutationName(schemaName: String): String = "update$schemaName"
+fun defaultInsertMutationName(schemaName: String): String = "insert$schemaName"
+fun defaultDeleteMutationName(schemaName: String): String = "delete$schemaName"
+
+//fun GraphQLMutation.toGraphQLQuery(): GraphQLUtils.GraphQLQuery {
+//    val inputVariableWithDollar = "\$${inputVariable}"
+//    return GraphQLUtils.GraphQLQuery(
+//        query = """
+//            mutation $mutationName($inputVariableWithDollar: $inputType!) {
+//              schema {
+//              	$mutationName($parameterName: $inputVariableWithDollar)
+//              }
+//            }
+//        """.trimIndent(),
+//        variables = mapOf(inputVariable to keysAndValues)
+//    )
+//}
+
 

@@ -13,7 +13,11 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework:spring-context:5.3.25")
+    // spring
+    implementation("org.springframework.boot:spring-boot-starter-web")
+
+    // rate limiter
+    implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:7.6.0")
 
     implementation("jakarta.annotation:jakarta.annotation-api:1.3.5")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.14.0")
