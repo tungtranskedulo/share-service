@@ -1,0 +1,6 @@
+server.port: 8080
+
+rateLimiter:
+  resource:
+    maxRequest: 1
+    timeWindowMinute: 6

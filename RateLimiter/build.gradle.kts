@@ -15,12 +15,18 @@ repositories {
 
 dependencies {
     // rate limiter
-    implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:7.6.0")
+    //implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:7.6.0")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+
+    //cache
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("com.google.guava:guava:30.1.1-jre")
+//    implementation("com.github.ben-manes.caffeine:caffeine:3.0.3")
+//    implementation("com.github.ben-manes.caffeine:guava:3.0.3")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
