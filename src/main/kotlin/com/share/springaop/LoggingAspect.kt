@@ -31,7 +31,6 @@ class LoggingAspect {
     @Around("@annotation( com.share.springaop.LogExecutionTime)")
     @Throws(Throwable::class)
     fun methodTimeLogger(proceedingJoinPoint: ProceedingJoinPoint): Any? {
-//        kotlin.runCatching {
         val methodSignature: MethodSignature = proceedingJoinPoint.signature as MethodSignature
 
         // Get intercepted method details
@@ -70,9 +69,5 @@ class LoggingAspect {
                 .append(" sec")
         }
         return sb.toString()
-    }
-
-    private fun printException(e: Throwable) {
-        log.error { e }
     }
 }
