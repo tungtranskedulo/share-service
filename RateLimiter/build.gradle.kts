@@ -17,7 +17,10 @@ dependencies {
     // rate limiter
     //implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:7.6.0")
 
+    //spring
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-autoconfigure")
+
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")

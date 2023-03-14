@@ -46,10 +46,23 @@ java.sourceCompatibility = JavaVersion.VERSION_11
 dependencies {
   implementation(project(":RateLimiter"))
 
+  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
+  implementation("org.springframework.boot:spring-boot-starter")
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+
+  // AOP
+  implementation("org.springframework.boot:spring-boot-starter-aop")
+
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
+
+  //log
+  implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 

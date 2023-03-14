@@ -36,15 +36,15 @@ class DataRefreshController(
         return rateLimiter.isAllow(resourceId)
     }
 
-    private fun fixedWindow(resourceId: String): List<String> {
-        val currentWindow = getCurrentFixedWindow()
-        val key = java.lang.String.format("resource_%s:%s", resourceId, currentWindow)
-
-        val inc = increase(key)
-        return if (inc <= MAX_REQUESTS_PER_MINUTE) {
-            response(key, "Data refreshed at ${LocalTime.now()}")
-        } else {
-            response(key, "Too many refresh ${LocalTime.now()}")
-        }
-    }
+//    private fun fixedWindow(resourceId: String): List<String> {
+//        val currentWindow = getCurrentFixedWindow()
+//        val key = java.lang.String.format("resource_%s:%s", resourceId, currentWindow)
+//
+//        val inc = increase(key)
+//        return if (inc <= MAX_REQUESTS_PER_MINUTE) {
+//            response(key, "Data refreshed at ${LocalTime.now()}")
+//        } else {
+//            response(key, "Too many refresh ${LocalTime.now()}")
+//        }
+//    }
 }

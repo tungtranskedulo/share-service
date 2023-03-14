@@ -7,6 +7,7 @@ import org.springframework.boot.runApplication
 import org.springframework.context.annotation.ComponentScan
 
 @SpringBootApplication
+@ConfigurationPropertiesScan
 class Application {
 	companion object {
 		@JvmStatic
