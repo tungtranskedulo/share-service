@@ -15,6 +15,7 @@ class CustomFormService {
     @LogExecutionTime
     fun getCustomForm2()  {
         kotlin.runCatching {
+            Thread.sleep(1000)
             val a = 10/0
             log.info { a }
         }.getOrElse {

@@ -30,27 +30,34 @@ class LoggingAspect {
      */
     @Around("@annotation( com.share.springaop.LogExecutionTime)")
     @Throws(Throwable::class)
-    fun methodTimeLogger(proceedingJoinPoint: ProceedingJoinPoint) : Any? {
+    fun methodTimeLogger(proceedingJoinPoint: ProceedingJoinPoint): Any? {
+//        kotlin.runCatching {
+        val methodSignature: MethodSignature = proceedingJoinPoint.signature as MethodSignature
+
+        // Get intercepted method details
+        val className: String = methodSignature.declaringType.simpleName
+        val methodName: String = methodSignature.name
+
+        // Measure method execution time
+        val stopWatch = StopWatch("$className -> $methodName")
+        stopWatch.start(methodName)
+
         kotlin.runCatching {
-            val methodSignature: MethodSignature = proceedingJoinPoint.signature as MethodSignature
-
-            // Get intercepted method details
-            val className: String = methodSignature.declaringType.simpleName
-            val methodName: String = methodSignature.name
-
-            // Measure method execution time
-            val stopWatch = StopWatch("$className->$methodName")
-            stopWatch.start(methodName)
             val result: Any? = proceedingJoinPoint.proceed()
             stopWatch.stop()
-            // Log method execution time
             if (log.isInfoEnabled) {
                 log.info(stopWatch.printExecutionTime())
             }
             return result
-        }.getOrElse {
-            return null
+        }.onFailure {
+            stopWatch.stop()
+            if (log.isErrorEnabled) {
+                log.error(stopWatch.printExecutionTime())
+                log.error { it }
+            }
+            throw it
         }
+        return null
     }
 
     private fun StopWatch.printExecutionTime(): String {
@@ -63,5 +70,9 @@ class LoggingAspect {
                 .append(" sec")
         }
         return sb.toString()
+    }
+
+    private fun printException(e: Throwable) {
+        log.error { e }
     }
 }
