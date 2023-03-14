@@ -2,5 +2,5 @@ package com.share.springaop
 
 
 @Retention(AnnotationRetention.RUNTIME)
-@Target
+@Target(AnnotationTarget.FUNCTION)
 annotation class LogExecutionTime

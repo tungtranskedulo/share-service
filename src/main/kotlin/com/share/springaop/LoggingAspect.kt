@@ -28,7 +28,7 @@ class LoggingAspect {
      * @return
      * @throws Throwable
      */
-    @Around("@annotation( com.share.springaop.LogExecutionTime)")
+    @Around("@annotation(com.share.springaop.LogExecutionTime)")
     @Throws(Throwable::class)
     fun methodTimeLogger(proceedingJoinPoint: ProceedingJoinPoint): Any? {
         val methodSignature: MethodSignature = proceedingJoinPoint.signature as MethodSignature
