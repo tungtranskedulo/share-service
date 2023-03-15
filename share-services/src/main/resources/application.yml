@@ -1,0 +1,8 @@
+server.port: 8888
+
+
+skedulo.app:
+  rate-limiter:
+    resource:
+      max-request: 120
+      time-window-minute: 6
