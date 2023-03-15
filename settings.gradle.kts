@@ -1,2 +1,3 @@
-include("GraphQL")
-include("RateLimiter")
+rootProject.name = "share-services"
+
+include("share-services")
