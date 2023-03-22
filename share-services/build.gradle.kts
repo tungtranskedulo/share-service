@@ -22,6 +22,7 @@ dependencies {
     // spring
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     // fasterxml
     implementation("jakarta.annotation:jakarta.annotation-api:1.3.5")
@@ -29,6 +30,12 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.3")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+    // Swagger API Documentation
+    implementation("org.springdoc:springdoc-openapi-ui:1.6.8")
+    implementation("org.springdoc:springdoc-openapi-webmvc-core:1.6.8")
+    implementation("org.springdoc:springdoc-openapi-kotlin:1.6.8")
+    implementation("org.springdoc:springdoc-openapi-common:1.6.8")
 
     // AOP
     implementation("org.springframework.boot:spring-boot-starter-aop")

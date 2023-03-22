@@ -5,11 +5,13 @@ import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.share.domain.refresh.services.RateLimiter
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.concurrent.TimeUnit
 
 @RestController
+@RequestMapping("/share-services")
 class DataRefreshController(
     private val rateLimiter: RateLimiter
 ) {
