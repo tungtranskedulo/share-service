@@ -31,7 +31,7 @@ class DataRefreshController(
     }
 
 
-    @PostMapping(value = ["/refresh"])
+    @PostMapping(value = ["user/refresh"])
     fun refreshOrgAndUserData(@RequestParam resourceId: String): Boolean {
         return rateLimiter.isAllow(resourceId)
     }
