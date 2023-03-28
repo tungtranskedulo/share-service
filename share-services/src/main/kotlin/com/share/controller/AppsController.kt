@@ -44,11 +44,12 @@ class AppsController(
         platform: String,
     ): String {
         val mockoonApi = WebClient.builder()
-            .baseUrl("http://localhost:3000")
+            //.baseUrl("http://localhost:3000")
+            .baseUrl("https://dev-api.test.skl.io")
             .defaultCookie("cookie-name", "cookie-value")
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .build()
-        val request = mockoonApi.post().uri("/engine/$appVersion/$platform")
+        val request = mockoonApi.get().uri("/form/bundle/engine/$appVersion/$platform")
 
         return request
             .retrieve()
