@@ -24,7 +24,7 @@ class AppsController(
     fun healthCheck() = "Pong"
 
     @GetMapping("/refresh")
-    fun refresh() : ApiResponse<RefreshResponse, CustomAPIRequest<EmptyDataRequest>> {
+    suspend fun refresh() : ApiResponse<RefreshResponse, CustomAPIRequest<EmptyDataRequest>> {
         dataRefreshService.refreshData()
 
         return ApiResponse.ok(CustomAPIRequest(), RefreshResponse())
