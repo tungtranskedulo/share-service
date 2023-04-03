@@ -11,7 +11,7 @@ import kotlin.system.measureTimeMillis
 private val log = KotlinLogging.logger {}
 @Service
 class CustomFormService {
-    //@CoroutineLogExecutionTime
+    @CoroutineLogExecutionTime
      suspend fun getCustomForm()  {
         execute()
     }
@@ -21,7 +21,7 @@ class CustomFormService {
     }
 
 
-    @CoroutineLogExecutionTime
+    @LogExecutionTime
     fun getCustomForm2()  {
         kotlin.runCatching {
             Thread.sleep(1000)
