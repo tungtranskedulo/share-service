@@ -118,17 +118,32 @@ class CoroutineLoggingAspect {
             val stopWatch = StopWatch("$className -> $methodName")
             stopWatch.start(methodName)
 
-            val result: Any? = proceedingJoinPoint.proceedCoroutine()
-            stopWatch.stop()
-            if (log.isInfoEnabled) {
-                log.info(stopWatch.printExecutionTime())
+            kotlin.runCatching {
+                val result: Any? = proceedingJoinPoint.proceedCoroutine()
+                stopWatch.stop()
+                stopWatch.printSuccessExecutionTime()
+                return@runCoroutine result
+            }.onFailure {
+                stopWatch.stop()
+                stopWatch.printFailureExecutionTime(it)
             }
-            result
         }
 }
 
+private fun StopWatch.printSuccessExecutionTime() {
+    if (log.isInfoEnabled) {
+        log.info(this.printExecutionTime())
+    }
+}
 
-fun StopWatch.printExecutionTime(): String {
+private fun StopWatch.printFailureExecutionTime(error: Throwable) {
+    if (log.isErrorEnabled) {
+        log.error(this.printExecutionTime())
+        log.error { error }
+    }
+}
+
+private fun StopWatch.printExecutionTime(): String {
     val sb = StringBuilder()
     sb.append("StopWatch '").append(this.id).append("': running time (millis) = ")
         .append(this.totalTimeMillis)

@@ -1,28 +1,41 @@
 package com.share.domain.refresh.services
 
 import com.share.logging.CoroutineLogExecutionTime
-import com.share.logging.LogExecutionTime
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
-import kotlin.system.measureTimeMillis
 
 private val log = KotlinLogging.logger {}
+
 @Service
 class CustomFormService {
     @CoroutineLogExecutionTime
-     suspend fun getCustomForm()  {
-        execute()
+    suspend fun getCustomForm(): String {
+        return execute()
     }
 
-    suspend fun execute() {
-        delay(2000)
+    suspend fun execute(): String {
+        delay(1000)
+       // throw RuntimeException("c")
+        return execute1()
+    }
+
+    suspend fun execute1(): String {
+        delay(1000)
+        log.info { "execute1" }
+        return "execute1"
+    }
+
+    //@CoroutineLogExecutionTime
+    suspend fun getCustomForm1() {
+        delay(400)
+        //execute()
     }
 
 
-    @LogExecutionTime
-    fun getCustomForm2()  {
+    // @LogExecutionTime
+    fun getCustomForm2() {
         kotlin.runCatching {
             Thread.sleep(1000)
         }.getOrElse {

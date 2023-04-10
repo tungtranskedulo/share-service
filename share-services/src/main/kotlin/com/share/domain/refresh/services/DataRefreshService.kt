@@ -15,7 +15,8 @@ class DataRefreshService(
     private val customFormService: CustomFormService
 ) {
 
-    //@CoroutineLogExecutionTime
+   // @CoroutineLogExecutionTime
+    //@LogExecutionTime
     suspend fun refreshData()   {
         val refreshScope = CoroutineScope(
             Dispatchers.Default
@@ -26,9 +27,9 @@ class DataRefreshService(
         refreshScope.launch {
             waitForJobsToFinish(
                 launch { customFormService.getCustomForm() },
+                launch { customFormService.getCustomForm1() },
                 launch { customFormService.getCustomForm2() }
             )
-            delay(1000)
         }
     }
 
