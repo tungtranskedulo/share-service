@@ -18,11 +18,6 @@ class CustomAPIResponse<T : PublicAPIData?> : PublicAPIResponse<T> {
 }
 
 class CustomAPIRequest<T : PublicAPIData?> : PublicAPIRequest<T> {
-    var clientInterface: String? = null
-
-    //  @NotNullable
-    var context: APIContext? = null
-
     constructor()
     constructor(data: T) : super(data)
     constructor(data: T, fields: List<String?>?) : super(data, fields)

@@ -26,9 +26,7 @@ class DataRefreshService(
 
         refreshScope.launch {
             waitForJobsToFinish(
-                launch { customFormService.getCustomForm() },
-                launch { customFormService.getCustomForm1() },
-                launch { customFormService.getCustomForm2() }
+                launch { customFormService.fetchAllInstanceDataForJob() },
             )
         }
     }

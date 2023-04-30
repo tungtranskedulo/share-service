@@ -1,15 +1,13 @@
 package com.share.controller
 
 import com.share.domain.refresh.services.DataRefreshService
-import com.share.http.ApiResponse
-import com.share.http.CustomAPIRequest
-import com.share.http.EmptyDataRequest
-import com.share.http.PublicAPIData
+import com.share.http.*
 import com.share.http.api.ApiSuccessResult
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
@@ -27,7 +25,17 @@ class AppsController(
     suspend fun refresh() : ApiResponse<RefreshResponse, CustomAPIRequest<EmptyDataRequest>> {
         dataRefreshService.refreshData()
 
-        return ApiResponse.ok(CustomAPIRequest(), RefreshResponse())
+        return ApiResponse.ok()
+    }
+
+    @GetMapping("/refresh-failed")
+    suspend fun refreshFailed() : ApiResponse<RefreshResponse, CustomAPIRequest<EmptyDataRequest>> {
+        dataRefreshService.refreshData()
+
+        return ApiResponse.errorResult(
+            errors =  listOf(Error.serverError(ResponseCode.RC_500, "Test Error")),
+            responseCode = ResponseCode.RC_500.responseCode
+        )
     }
 
     @GetMapping(value = ["/mexengine/{appVersion}/{platform}"])
@@ -44,8 +52,8 @@ class AppsController(
         platform: String,
     ): String {
         val mockoonApi = WebClient.builder()
-            //.baseUrl("http://localhost:3000")
-            .baseUrl("https://dev-api.test.skl.io")
+            .baseUrl("http://localhost:3000")
+//            .baseUrl("https://dev-api.test.skl.io")
             .defaultCookie("cookie-name", "cookie-value")
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .build()
@@ -58,6 +66,6 @@ class AppsController(
     }
 
     data class RefreshResponse (
-        val errors: List<String> = listOf()
+        val type: String = "refresh"
     ): PublicAPIData
 }

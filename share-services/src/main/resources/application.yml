@@ -6,3 +6,5 @@ skedulo.app:
     resource:
       max-request: 120
       time-window-minute: 6
+  config:
+    limit-concurrent-coroutine: 10
