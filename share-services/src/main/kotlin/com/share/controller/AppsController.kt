@@ -3,15 +3,14 @@ package com.share.controller
 import com.share.domain.refresh.services.DataRefreshService
 import com.share.http.*
 import com.share.http.api.ApiSuccessResult
+import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("/share-services")
@@ -28,14 +27,13 @@ class AppsController(
         return ApiResponse.ok()
     }
 
-    @GetMapping("/refresh-failed")
-    suspend fun refreshFailed() : ApiResponse<RefreshResponse, CustomAPIRequest<EmptyDataRequest>> {
-        dataRefreshService.refreshData()
-
-        return ApiResponse.errorResult(
-            errors =  listOf(Error.serverError(ResponseCode.RC_500, "Test Error")),
-            responseCode = ResponseCode.RC_500.responseCode
-        )
+    @GetMapping("/refresh-entity")
+    suspend fun refreshEntity() : ApiSuccessResult<RefreshEntityResponse>  {
+        return withTenantUserToken {
+            dataRefreshService.refreshEntity()?.let {
+                ApiSuccessResult(RefreshEntityResponse(it.id.toString(), it.globalSequenceNumber))
+            } ?: ApiSuccessResult(RefreshEntityResponse("No entity found", null))
+        }
     }
 
     @GetMapping(value = ["/mexengine/{appVersion}/{platform}"])
@@ -61,11 +59,30 @@ class AppsController(
 
         return request
             .retrieve()
-            .awaitBody<ApiSuccessResult<String>>()
-            .result
+            .awaitBody()
+    }
+
+    @PutMapping(value = ["/attachments/{parentId}"])
+    suspend fun uploadFile(
+        @PathVariable("parentId") parentId: String,
+        request: HttpServletRequest,
+    ): ApiSuccessResult<String> {
+        return withTenantUserToken {
+            ApiSuccessResult(
+                result = getMexEngine(parentId, "android")
+            )
+        }
+    }
+
+    private suspend fun <T> withTenantUserToken(
+        block: suspend () -> T
+    ): T {
+        return block()
     }
 
     data class RefreshResponse (
         val type: String = "refresh"
     ): PublicAPIData
+
+    data class RefreshEntityResponse(val id: String, val globalSequenceNumber: Int?)
 }

@@ -56,9 +56,12 @@ dependencies {
     //cache
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("com.google.guava:guava:30.1.1-jre")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.0.3")
 
     // others
     implementation("io.arrow-kt:arrow-core-data:0.12.1")
+    implementation("org.openjdk.jmh:jmh-core:1.35")
+    annotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.35")
 
     val kotestVersion = "4.4.3"
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")

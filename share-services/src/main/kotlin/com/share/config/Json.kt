@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer
 import com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
+import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import com.share.common.toIsoString
 import java.math.BigDecimal
 import java.time.Instant
@@ -13,8 +14,15 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 
+val objectMapper = Json.mapper
+inline fun <reified T> T.toJsonObj() = objectMapper.convertValue(this, JsonObject::class.java)
+inline fun <reified T> String.fromJson(): T = objectMapper.readValue(this)
+inline fun <reified T> ObjectMapper.readValue(content: String): T = readValue(content, jacksonTypeRef<T>())
+
 typealias JsonObject = ObjectNode
 typealias JsonArray = ArrayNode
+
+
 object Json {
 
     private object InstantSerializerWithMilliSecondPrecision :
