@@ -1,6 +1,7 @@
 package com.share.domain.refresh.services
 
 import com.share.ApiClient
+import com.share.aspect.CoroutineLogExecutionTime
 import com.share.model.CBID
 import com.share.model.Identity
 import com.share.model.TenantId
@@ -39,6 +40,7 @@ data class CustomFieldDefinitionClientModel(
 class CacheService(
     private val customFormService: CustomFormService
 ) {
+    @CoroutineLogExecutionTime
     suspend fun get(): Map<String, Any> {
         return runCachedBy(CustomFieldDefinitionClientModel::class,"123") {
             customFormService.getCustomForm2("a", 2)

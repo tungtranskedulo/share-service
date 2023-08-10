@@ -293,7 +293,7 @@ data class CBID private constructor(val value: String) : ID {
         ): CBID {
             return CBID(id)
         }
-        private fun build(vararg values: String): CBID {
+        fun build(vararg values: String): CBID {
             return CBID(values.asList().joinToString("|"))
                 .also { id ->
                     if (id.value.toByteArray(StandardCharsets.UTF_8).size > 250) {

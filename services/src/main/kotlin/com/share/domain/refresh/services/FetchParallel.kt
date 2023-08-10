@@ -29,8 +29,8 @@ class FetchParallel {
     @OptIn(FlowPreview::class)
     @CoroutineLogExecutionTime
     suspend fun fetchAllInstanceDataForJob(): Flow<MexInstanceData> {
-        val chunks = findAll().chunked(10)
-        val results = chunks.pmap(maxOf(chunks.size, 1)) { chunk ->
+        val mex = findAll()
+        val results = mex.pmap(100) { chunk ->
             log.info { chunk }
             listOf<MexInstanceData>().asFlow()
         }
@@ -40,11 +40,11 @@ class FetchParallel {
     }
 
     suspend fun findAll(): List<MexInstance> {
-//        val instances = mutableListOf<MexInstance>()
-//        for (i in 1..20) {
-//            instances.add(MexInstance(i.toString(), "name$i"))
-//        }
-        return emptyList()
+        val instances = mutableListOf<MexInstance>()
+        for (i in 1..5) {
+            instances.add(MexInstance(i.toString(), "name$i"))
+        }
+        return instances
     }
 
     suspend fun getMexFetchData(id: String): MexInstanceData? {

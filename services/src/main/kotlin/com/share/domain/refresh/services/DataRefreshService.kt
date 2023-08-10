@@ -24,7 +24,8 @@ class DataRefreshService(
     private val menuService: MenuService,
     private val asyncFailureService: AsyncFailureService,
     private val cacheService: CacheService,
-    private val fetchParallel: FetchParallel
+    private val fetchParallel: FetchParallel,
+    private val mexHostService: MexHostService
 ) {
     private val asyncExceptionCache: Cache<String, Any> = Caffeine
         .newBuilder()
@@ -35,30 +36,21 @@ class DataRefreshService(
     suspend fun refreshData() {
         val userMetadata = getUserMetadata()
 
-        val refreshScope = CoroutineScope(
-            Dispatchers.IO
-                    + MDCContext()
-                    // catch any exceptions that bubble up
-                    + refreshUserDataExceptionHandler(userMetadata)
-                    // allow jobs to fail independently, one failure will not fail all
-                    + SupervisorJob()
-        )
+        withRefreshScope({ refreshUserDataExceptionHandler(userMetadata) }) { refreshScope ->
+            waitForJobsToFinish(
+                refreshScope.launch() { mexHostService.fetchStaticData() },
+            )
 
-        refreshScope.launch {
-                waitForJobsToFinish(
-                   // launch() { cacheService.get() },
-                    launch() { menuService.fetchMenu() },
-                   // launch() { fetchParallel.fetchAllInstanceDataForJob() }
-                )
-//                waitForJobsToFinish(
-//                    launch() { customFormService.getCustomForm2() }
-//                )
-
-                log.info { "Done refreshing scope" }
+            log.info { "Done refreshing scope" }
         }.also {
             log.info { "Launched refresh scope" }
         }
     }
+
+    private suspend fun waitForJobsToFinish(vararg jobs: Job) {
+        jobs.forEach { job -> job.join() }
+    }
+
 
     private fun refreshUserDataExceptionHandler(userMetadata: UserMetadata) =
         CoroutineExceptionHandler { _, throwable ->
@@ -114,8 +106,22 @@ class DataRefreshService(
         return UserMetadata(UUID.randomUUID().toString())
     }
 
-    private suspend fun waitForJobsToFinish(vararg jobs: Job) {
-        jobs.forEach { job -> job.join() }
+    private suspend fun <T> withRefreshScope(
+        dataExceptionHandler: () -> CoroutineExceptionHandler,
+        block: suspend (CoroutineScope) -> T
+    ) {
+        val refreshScope = CoroutineScope(
+            Dispatchers.IO
+                    + MDCContext()
+                    // catch any exceptions that bubble up
+                    + dataExceptionHandler()
+                    // allow jobs to fail independently, one failure will not fail all
+                    + SupervisorJob()
+        )
+        // return as quickly as possible without waiting for processes launched within to finish
+        refreshScope.launch {
+            block(refreshScope)
+        }
     }
 
 }

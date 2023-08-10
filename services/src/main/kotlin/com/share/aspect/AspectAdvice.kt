@@ -40,7 +40,6 @@ fun ProceedingJoinPoint.runCoroutine(
 @Component
 @Aspect
 class LoggingAspect(
-    private val asyncFailureService: AsyncFailureService,
     @Value("\${skedulo.app.config.fetch-timeout-millis}")
     private val fetchTimeoutMillis: Long,
 ) {
@@ -108,14 +107,14 @@ class LoggingAspect(
      */
     @Around(
         """
-        @annotation(coroutineLogExecutionTime) &&
+        @annotation(com.share.aspect.CoroutineLogExecutionTime) &&
         args(.., kotlin.coroutines.Continuation)
         """
     )
     @Throws(Throwable::class)
     fun coroutineLogExecutionTime(
         proceedingJoinPoint: ProceedingJoinPoint,
-        coroutineLogExecutionTime: CoroutineLogExecutionTime
+        //coroutineLogExecutionTime: CoroutineLogExecutionTime
     ): Any? =
         proceedingJoinPoint.runCoroutine {
             val methodSignature = proceedingJoinPoint.signature as MethodSignature

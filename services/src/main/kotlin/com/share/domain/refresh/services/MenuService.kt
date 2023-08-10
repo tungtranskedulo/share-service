@@ -12,21 +12,27 @@ private val log = KotlinLogging.logger {}
 
 @Service
 class MenuService(
-    private val apiClient: ApiClient
+    private val apiClient: ApiClient,
+    private val customFormService: CustomFormService,
 ) {
 
-    //@CoroutineLogExecutionTime
+    @CoroutineLogExecutionTime
     //@WithTimeout(timeout = 1, unit = TimeUnit.SECONDS)
-    suspend fun fetchMenu() {
-        log.info {  "Fetching menu" }
-        fetchMenu2()
+    suspend fun fetchMenu() : List<String> {
+        log.info { "Fetching menu" }
+        return getDefinitions()
+    }
+
+    suspend fun getDefinitions(): List<String> {
+        delay(1000)
+        return listOf("a", "b")
     }
 
     @CoroutineLogExecutionTime
     suspend fun fetchMenu2() {
-        log.info {  "Fetching menu2" }
+        log.info { "Fetching menu2" }
         delay(1500)
-        log.info {  "Done Fetching menu2" }
+        log.info { "Done Fetching menu2" }
     }
 
 }

@@ -12,7 +12,11 @@ object Util {
     suspend fun <A, B> Iterable<A>.pmap(limitConcurrentCoroutine: Int, f: suspend (A) -> B): List<B> = coroutineScope {
         //if (this@pmap.count() == 0) return@coroutineScope emptyList()
         val requestSemaphore = Semaphore(limitConcurrentCoroutine)
-        map { async(Dispatchers.IO) { requestSemaphore.withPermit { f(it) }  } }.awaitAll()
+        map {
+            async(Dispatchers.IO) {
+                requestSemaphore.withPermit { f(it) }
+            }
+        }.awaitAll()
     }
 
 }

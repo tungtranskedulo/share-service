@@ -33,9 +33,9 @@ class CustomFormService(
     private val limitConcurrentCoroutine: Int,
 ) {
     @CoroutineLogExecutionTime
-    suspend fun getCustomForm() {
-        log.info { "Fetching custom form" }
+    suspend fun getCustomForm(forms: List<String>?= emptyList()) {
         delay(500)
+        log.info { "Fetching form ${forms?.map { it }}" }
     }
 
     @CoroutineLogExecutionTime
@@ -138,6 +138,7 @@ class CustomFormService(
         val fetchData = findAll().pmap {
             getMexFetchData(it.id)
         }
+        delay(3000)
 
         return fetchData.filterNotNull().toList()
     }
@@ -176,17 +177,18 @@ class CustomFormService(
         appVersion: String,
         platform: String,
     ): String {
-        val mockoonApi = WebClient.builder()
-            .baseUrl("http://localhost:3000")
-            .defaultCookie("cookie-name", "cookie-value")
-            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .build()
-        val request = mockoonApi.get().uri("/form/bundle/engine/$appVersion/$platform")
-
-        return request
-            .retrieve()
-            .awaitBody<ApiSuccessResult<String>>()
-            .result
+//        val mockoonApi = WebClient.builder()
+//            .baseUrl("http://localhost:3000")
+//            .defaultCookie("cookie-name", "cookie-value")
+//            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+//            .build()
+//        val request = mockoonApi.get().uri("/form/bundle/engine/$appVersion/$platform")
+//
+//        return request
+//            .retrieve()
+//            .awaitBody<ApiSuccessResult<String>>()
+//            .result
+        return "1"
     }
 }
 
