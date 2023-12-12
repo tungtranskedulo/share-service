@@ -163,8 +163,12 @@ class LoggingAspect(
             val stopWatch = StopWatch("$className -> $methodName")
             stopWatch.start(methodName)
             kotlin.runCatching {
-                val result = withTimeout(timeoutMillis) {
-                    proceedingJoinPoint.proceedCoroutine()
+                val result = when {
+                    timeoutMillis > 0 -> withTimeout(timeoutMillis) {
+                        proceedingJoinPoint.proceedCoroutine()
+                    }
+
+                    else -> proceedingJoinPoint.proceedCoroutine()
                 }
                 stopWatch.stop()
                 return@runCoroutine result

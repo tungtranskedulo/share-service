@@ -5,6 +5,8 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.share.aspect.AsyncException
 import com.share.aspect.CoroutineLogExecutionTime
 import com.share.cache.cachedBy
+import com.share.config.JsonObject
+import com.share.config.emptyJsonObject
 import com.share.model.ModelWithGlobalSequence
 import com.share.model.UserMetadata
 import kotlinx.coroutines.*
@@ -25,26 +27,31 @@ class DataRefreshService(
     private val asyncFailureService: AsyncFailureService,
     private val cacheService: CacheService,
     private val fetchParallel: FetchParallel,
-    private val mexHostService: MexHostService
+    private val mexHostService: MexHostService,
+    private val timeLineServices: TimeLineServices
 ) {
     private val asyncExceptionCache: Cache<String, Any> = Caffeine
         .newBuilder()
         .expireAfterWrite(15, TimeUnit.SECONDS)
         .build()
 
-    //@CoroutineLogExecutionTime
     suspend fun refreshData() {
         val userMetadata = getUserMetadata()
 
         withRefreshScope({ refreshUserDataExceptionHandler(userMetadata) }) { refreshScope ->
             waitForJobsToFinish(
-                refreshScope.launch() { mexHostService.fetchStaticData() },
+                refreshScope.launch() { customFormService.saveCustomFormData("formId1", emptyJsonObject()) },
             )
 
-            log.info { "Done refreshing scope" }
+            log.info { "Done refreshData refresh scope" }
         }.also {
-            log.info { "Launched refresh scope" }
+            log.info { "Launched refreshData scope" }
         }
+    }
+
+    suspend fun run() : Any {
+        //return customFormService.saveCustomFormData("formId1", emptyJsonObject())
+        return customFormService.processEventsForDevice()
     }
 
     private suspend fun waitForJobsToFinish(vararg jobs: Job) {
@@ -90,16 +97,12 @@ class DataRefreshService(
     @CoroutineLogExecutionTime
     suspend fun refreshEntity(): ModelWithGlobalSequence<*>? {
         try {
-//            val result = withTimeout(3000) {
-//                return@withTimeout jobService.fetchJob()
-//            }
-//            return result
+            // todo - add logic to fetch entity
         } catch (e: Exception) {
             log.error { "Failed to fetch job" }
             return null
         }
         return null
-        //return jobService.fetchJob()
     }
 
     private suspend fun getUserMetadata(): UserMetadata {

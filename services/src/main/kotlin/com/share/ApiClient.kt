@@ -1,23 +1,29 @@
 package com.share
 
+import com.share.config.JsonObject
+import com.share.config.toJson
+import com.share.http.RetryConfiguration
+import com.share.http.RetryPolicyName
+import com.share.http.SkeduloApiClientException
 import com.share.http.api.ApiSuccessResult
+import com.share.http.retryWithPolicy
 import com.share.model.FileMetadata
 import com.share.model.FileMetadataClientModel
 import com.share.model.ObjectId
-import com.share.model.Schema
+import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
-import reactor.core.publisher.Flux
 
+private val log = KotlinLogging.logger {}
 
 @Component
 class ApiClient(
     @Qualifier("mocApiClient")
-    private val mocApiClient: WebClient
+    private val mocApiClient: WebClient,
+    private val retryConfiguration: RetryConfiguration
 ) {
     suspend fun getMexEngine(
         appVersion: String,
@@ -43,6 +49,21 @@ class ApiClient(
             .awaitBody()
     }
 
+    suspend fun saveCustomFormData(formRevId: String, saveObject: JsonObject): JsonObject {
+        val retryPolicy = retryConfiguration.retryPolicyConfiguration()[RetryPolicyName.Condenser]!!
+
+        return retryWithPolicy(retryPolicy) {
+            log.info { "Saving form $formRevId" }
+            mocApiClient.post().uri("/condenser/form/save")
+                .accept(MediaType.APPLICATION_JSON)
+                .bodyValue(CondenserSavePayLoad(formRevId, saveObject).toJson())
+                .retrieve()
+                .awaitBody()
+        }
+    }
+
+
+
     suspend fun findFileMetadata(tempId: ObjectId): FileMetadata? {
         return null
 //        return FileMetadata(
@@ -52,3 +73,5 @@ class ApiClient(
     }
 
 }
+
+data class CondenserSavePayLoad(val formId: String, val saveObj: JsonObject)

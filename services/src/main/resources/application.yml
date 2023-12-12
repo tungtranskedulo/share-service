@@ -8,4 +8,9 @@ skedulo.app:
       time-window-minute: 6
   config:
     limit-concurrent-coroutine: 10
-    fetch-timeout-millis: 30000
+    fetch-timeout-millis: 0
+
+  retry-policy:
+    condenser:
+      maxAttempts: 3
+      waitDurationSeconds: 2

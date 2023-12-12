@@ -2,6 +2,7 @@ package com.share.controller
 
 import com.share.ApiClient
 import com.share.aspect.CoroutineLogExecutionTime
+import com.share.config.JsonObject
 import com.share.domain.refresh.services.DataRefreshService
 import com.share.http.*
 import com.share.http.api.ApiSuccessResult
@@ -12,7 +13,6 @@ import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.web.bind.annotation.*
-
 
 
 private val log = KotlinLogging.logger {}
@@ -31,6 +31,11 @@ class AppsController(
         dataRefreshService.refreshData()
 
         return ApiResponse.ok()
+    }
+
+    @GetMapping("/run")
+    suspend fun run(): ApiSuccessResult<Any> {
+        return ApiSuccessResult(dataRefreshService.run())
     }
 
     @GetMapping("/refresh-entity")

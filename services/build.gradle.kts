@@ -9,6 +9,15 @@ plugins {
 group = "org.example"
 version = "unspecified"
 
+sourceSets {
+    create("educative") {
+        compileClasspath += sourceSets.main.get().output
+        runtimeClasspath += sourceSets.main.get().output
+        // add test source so int test can reuse
+        compileClasspath += sourceSets.test.get().output
+        runtimeClasspath += sourceSets.test.get().output
+    }
+}
 
 springBoot {
     mainClass.set("com.share.Application")
@@ -42,6 +51,7 @@ dependencies {
 
     // rate limiter
     implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:7.6.0")
+    implementation("io.github.resilience4j:resilience4j-retry:1.7.0")
 
     // jetbrains
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")

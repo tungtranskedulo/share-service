@@ -16,12 +16,17 @@ import java.time.format.DateTimeFormatterBuilder
 
 val objectMapper = Json.mapper
 inline fun <reified T> T.toJsonObj() = objectMapper.convertValue(this, JsonObject::class.java)
+inline fun <reified T> T.toJson() = objectMapper.writeValueAsString(this)
 inline fun <reified T> String.fromJson(): T = objectMapper.readValue(this)
 inline fun <reified T> ObjectMapper.readValue(content: String): T = readValue(content, jacksonTypeRef<T>())
 
 typealias JsonObject = ObjectNode
 typealias JsonArray = ArrayNode
 
+
+fun emptyJsonObject(): ObjectNode {
+    return ObjectMapper().createObjectNode()
+}
 
 object Json {
 

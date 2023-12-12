@@ -127,9 +127,18 @@ sealed class LockResult<T>(val lockId: String) {
     class Locked<T>(val id: String) : LockResult<T>(lockId = id)
     class Failure<T>(val id: String) : LockResult<T>(lockId = id)
 }
-enum class ShouldContinue {
-    CONTINUE,
-    STOP
+sealed class ShouldContinue {
+    object CONTINUE : ShouldContinue()
+    object STOP : ShouldContinue()
+    data class SKIP(val value: Int, val count: Int = 0) : ShouldContinue() {
+        fun shouldStop(): Boolean {
+            return count > 3
+        }
+
+        fun increaseSkipCount(): ShouldContinue {
+            return this.copy(count = count + 1)
+        }
+    }
 }
 
 data class SequenceWithCas(
