@@ -123,6 +123,10 @@ fun findExistObjectIdMapping(tempIds: List<String>) : List<ObjectIdMapping>{
     return listOf (ObjectIdMapping(ObjectId("dynamic_1"), ObjectId("real_1")))
 }
 
+fun findAllObjectIdMapping() : List<ObjectIdMapping>{
+    return listOf (ObjectIdMapping(ObjectId("dynamic_1"), ObjectId("real_1")))
+}
+
 fun getCustomFormInstanceDataFromCB(): JsonObject {
     return """{
               "Job Products": {

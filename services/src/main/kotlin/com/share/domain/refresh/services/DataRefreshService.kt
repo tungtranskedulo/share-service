@@ -50,8 +50,8 @@ class DataRefreshService(
     }
 
     suspend fun run() : Any {
-        //return customFormService.saveCustomFormData("formId1", emptyJsonObject())
-        return customFormService.processEventsForDevice()
+        return customFormService.saveCustomFormData("formId1", emptyJsonObject())
+        //return customFormService.processEventsForDevice()
     }
 
     private suspend fun waitForJobsToFinish(vararg jobs: Job) {

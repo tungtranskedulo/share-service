@@ -16,6 +16,7 @@ import com.share.config.toJsonObj
 import com.share.aspect.CoroutineLogExecutionTime
 import com.share.config.JsonArray
 import com.share.config.JsonObject
+import com.share.config.emptyJsonArrayObject
 import com.share.config.emptyJsonObject
 import com.share.config.fromJson
 import com.share.http.RetryConfiguration
@@ -36,6 +37,12 @@ class CustomFormService(
     private val limitConcurrentCoroutine: Int,
     private val apiCLient: ApiClient
 ) {
+    companion object {
+        const val UID = "UID"
+        const val managedSource = "__managedSource"
+        const val dynamicUIDPrefix = "dynamic_"
+    }
+
     @CoroutineLogExecutionTime
     suspend fun getCustomForm(forms: List<String>? = emptyList()) {
         delay(500)
@@ -70,31 +77,22 @@ class CustomFormService(
     @Suppress("UNCHECKED_CAST")
     suspend fun saveCustomFormData(formRevId: String, saveObject: JsonObject): Any {
         val postInstanceData = postInstanceData()
+        val existUIDs = mutableListOf<String>()
+        val existObjectIdMapping = findAllObjectIdMapping()
 
         val saveObjectGroupByUID = postInstanceData.extractContextObjectData(
             ObjectId("a0P5f00001IJB8uEAH")
-        )?.groupByDynamicUID()
+        ).groupByDynamicUID(existObjectIdMapping)
 
-        val extractStoreObject = saveObjectGroupByUID?.let { context ->
-            val existObjectIdMapping = findExistObjectIdMapping(context.newObject.map { p -> p.uid })
+        val extractStoreObject = saveObjectGroupByUID.let { context ->
             log.info { "saveObjectWithUID $context" }
             val storeObjects = mutableListOf<StoreObject>()
             context.newObject.map { node ->
                 storeObjects.add(
-                    existObjectIdMapping.find { it.temporaryId.value == node.uid }?.let {
-                        StoreObject(
-                            uid = it.objectId.value,
-                            data = postInstanceData.replaceArrayNode(
-                                node.data.replaceValueByKey(
-                                    "UID",
-                                    it.objectId.value
-                                )
-                            )
-                        )
-                    } ?: StoreObject(node.uid, postInstanceData.replaceArrayNode(node.data))
+                    StoreObject(node.uid, postInstanceData.replaceArrayNode(node.data))
                 )
             }
-            context.updateObject.map {
+            context.updateObject.let {
                 storeObjects.add(
                     StoreObject(
                         uid = it.uid,
@@ -104,15 +102,17 @@ class CustomFormService(
             }
             storeObjects
         }
+        log.info { "extractStoreObject $extractStoreObject" }
 
 
         var mock = 0
         val mappingObjectIdMapping = mutableListOf<ObjectIdMapping>()
-        val savedObjects = extractStoreObject?.let { storeObj ->
-            val existUIDs = getCustomFormInstanceDataFromCB()
-                .extractContextObjectData(ObjectId("a0P5f00001IJB8uEAH"))
-                ?.extractUID()?.toMutableList()
-                ?: mutableListOf<String>()
+        val savedObjects = extractStoreObject.let { storeObj ->
+            existUIDs.addAll(
+                getCustomFormInstanceDataFromCB()
+                    .extractContextObjectData(ObjectId("a0P5f00001IJB8uEAH"))
+                    .extractUID().toMutableList()
+            )
             log.info { "existUIDs $existUIDs" }
 
             storeObj.map { obj ->
@@ -122,7 +122,7 @@ class CustomFormService(
                 log.info { "response $fetchObject to condenser" }
                 if (obj.uid.startsWith("dynamic_")) {
                     val arrayNode = fetchObject.extractContextObjectData(ObjectId("a0P5f00001IJB8uEAH"))
-                    arrayNode?.getMappingObject(
+                    arrayNode.getMappingObject(
                         obj.uid,
                         existUIDs
                     )?.let {
@@ -139,7 +139,7 @@ class CustomFormService(
 
         log.info { "save ObjectIdMapping ${mappingObjectIdMapping.map { "${it.temporaryId} - ${it.objectId}" }}" }
 
-        return savedObjects as Any
+        return savedObjects
     }
 
 
@@ -149,8 +149,7 @@ class CustomFormService(
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    private suspend fun JsonObject.extractContextObjectData(contextObjectId: ObjectId): JsonArray? {
+    private suspend fun JsonObject.extractContextObjectData(contextObjectId: ObjectId): JsonArray {
         for (fieldName in this.fieldNames()) {
             if (this.has(contextObjectId.value)) {
                 this.get(contextObjectId.value).fields().forEach { (_, value) ->
@@ -165,38 +164,57 @@ class CustomFormService(
                 }
             }
         }
-        return null
+        return ObjectMapper().createArrayNode()
     }
 
-    private suspend fun JsonArray.groupByDynamicUID(): ContextObject? {
+    private suspend fun JsonArray.groupByDynamicUID(existObjectIdMapping: List<ObjectIdMapping>): ContextObject {
         val newObject = mutableListOf<ContextArrayNode>()
+        val updateObject = objectMapper.createArrayNode()
 
-        val nonDynamicNode = objectMapper.createArrayNode()
         forEach { node ->
-            node["UID"]?.asText()?.let { uid ->
-                if (uid.startsWith("dynamic_")) {
-                    newObject.add(ContextArrayNode(node["UID"].asText(), objectMapper.createArrayNode().add(node)))
+            node[UID]?.asText()?.let { uid ->
+                if (uid.startsWith(dynamicUIDPrefix)) {
+                    existObjectIdMapping.find { it.temporaryId.value == uid }?.let {
+                        when (node[managedSource]?.asInt()) {
+                            ManageSource.DELETE.value -> {
+                                updateObject.add(
+                                    (node as ObjectNode).replaceValuesByKeys(
+                                        mapOf<String, Any>(
+                                            UID to it.objectId.value,
+                                        )
+                                    )
+                                )
+                            }
+
+                            ManageSource.CREATE.value -> {
+                                updateObject.add(
+                                    (node as ObjectNode).replaceValuesByKeys(
+                                        mapOf<String, Any>(
+                                            UID to it.objectId.value,
+                                            managedSource to ManageSource.UPDATE.value
+                                        )
+                                    )
+                                )
+                            }
+
+                            else -> {}
+                        }
+                    } ?: run {
+                        newObject.add(ContextArrayNode(node[UID].asText(), objectMapper.createArrayNode().add(node)))
+                    }
                 } else {
-                    nonDynamicNode.add(node)
+                    updateObject.add(node)
                 }
             }
         }
 
-        if (newObject.isEmpty()) {
-            return null
-        }
-
         return ContextObject(
             newObject = newObject,
-            updateObject = if (!nonDynamicNode.isEmpty) {
-                listOf(ContextArrayNode("__updateSource", nonDynamicNode))
-            } else {
-                emptyList()
-            }
+            updateObject = ContextArrayNode("__updateSource", updateObject)
         )
     }
 
-    fun JsonObject.replaceArrayNode(
+    private fun JsonObject.replaceArrayNode(
         replacementArrayNode: ArrayNode
     ): ObjectNode {
         val jsonFactory = objectMapper.factory
@@ -247,32 +265,18 @@ class CustomFormService(
     }
 
 
-//    private suspend fun JsonObject.findAndReplaceExistTempId(temporaryIds: List<ObjectId>): JsonObject {
-//        log.info { "findAndReplaceExistTempId $temporaryIds" }
-//        val uidMappings = findByTemporaryIds().toList()
-//        val updatedJsonObject = replaceUID(this, uidMappings)
-//        log.info { "updatedJsonObject $updatedJsonObject" }
-//        return updatedJsonObject
-//    }
-
-
-    fun ObjectNode.replaceValueByKey(key: String, value: Any): ObjectNode {
-        val jsonFactory = objectMapper.factory
-        val jsonObject = this
-
-        return jsonFactory.toJsonObj().objectNode().apply {
-            jsonObject.fields().forEach { (k, v) ->
+    fun ObjectNode.replaceValuesByKeys(map: Map<String, Any>): ObjectNode {
+        return objectMapper.createObjectNode().apply {
+            this@replaceValuesByKeys.fields().forEach { (k, v) ->
                 set<ObjectNode>(
                     k, when {
-                        v is ObjectNode -> v.replaceValueByKey(key, value)
-                        v is ArrayNode -> v.replaceValueByKey(key, value)
-                        k == key -> {
-                            when (v) {
-                                is TextNode -> {
-                                    TextNode(value.toString())
-                                }
-
-                                else -> v
+                        v is ObjectNode -> v.replaceValuesByKeys(map)
+                        v is ArrayNode -> v.replaceValuesByKeys(map)
+                        map.containsKey(k) -> {
+                            when (map[k]) {
+                                is String -> TextNode(map[k].toString())
+                                is Int -> IntNode(map[k] as Int)
+                                else -> objectMapper.valueToTree(map[k])
                             }
                         }
 
@@ -283,18 +287,10 @@ class CustomFormService(
         }
     }
 
-    fun ArrayNode.replaceValueByKey(key: String, value: Any): ArrayNode {
-        val jsonFactory = objectMapper.factory
-        val jsonArray = this
-
-        return jsonFactory.toJsonObj().arrayNode().apply {
-            jsonArray.forEach { element ->
-                if (element is ObjectNode) {
-                    val updatedElement = element.replaceValueByKey(key, value)
-                    add(updatedElement)
-                } else {
-                    add(element)
-                }
+    fun ArrayNode.replaceValuesByKeys(map: Map<String, Any>): ArrayNode {
+        return objectMapper.createArrayNode().apply {
+            this@replaceValuesByKeys.forEach { element ->
+                add(if (element is ObjectNode) element.replaceValuesByKeys(map) else element)
             }
         }
     }
@@ -512,7 +508,7 @@ data class ObjectIdMapping(
 
 data class ContextObject(
     val newObject: List<ContextArrayNode>,
-    val updateObject: List<ContextArrayNode>
+    val updateObject: ContextArrayNode
 )
 
 data class ContextArrayNode(
@@ -524,3 +520,10 @@ data class StoreObject(
     val uid: String,
     val data: JsonObject
 )
+
+enum class ManageSource(val value: Int) {
+    CREATE(1),
+    UPDATE(2),
+    DELETE(3)
+}
+

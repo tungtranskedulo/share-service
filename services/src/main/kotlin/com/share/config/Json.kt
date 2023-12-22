@@ -27,6 +27,9 @@ typealias JsonArray = ArrayNode
 fun emptyJsonObject(): ObjectNode {
     return ObjectMapper().createObjectNode()
 }
+fun emptyJsonArrayObject(): ArrayNode {
+    return ObjectMapper().createArrayNode()
+}
 
 object Json {
 
