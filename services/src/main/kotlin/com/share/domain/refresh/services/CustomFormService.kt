@@ -483,7 +483,7 @@ class CustomFormService(
         val nextEventList = listOf(
             NextEventQueryResult(
                 "1",
-                objectMapper.readValue("""{"clientSequence":24,"data":{"isDraft":false,"objectId":"00141632-52f0-4e9c-a269-36d829155ca6","operation":"Updated","postChangeData":{"customFields":{"custom_boolean":false}},"preChangeData":{"customFields":{"custom_boolean":true}},"schema":"Resources","type":"Write","typeHint":"Resources","writeEventAction":"CustomField"},"deviceIdentifier":"450C72BE-B6FD-46A5-91B6-F620807FAEF4","eventSchemaVersion":1,"isDraft":false,"projectionId":"sk_f68824f0fd34429eab6861d610578779|00141632-52f0-4e9c-a269-36d829155ca6","resourceId":"00053e7f-2057-4959-88a6-8c1378d3c85f","sessionIdentifier":"EA953FC7-B398-41ED-A70F-66C36E490667","tenantId":"sk_f68824f0fd34429eab6861d610578779","timeWritten":"2023-05-05T08:11:33.797Z","type":"ClientEvent","uid":"36633b80-b30b-4293-bee5-2d18b819f880"}""")
+                objectMapper.readValue("""{"clientSequence":24,"data":{"isDraft":false,"objectId":"00141632-52f0-4e9c-a269-36d829155ca6","operation":"Updated","postChangeData":{"customFields":{"custom_boolean":false}},"preChangeData":{"customFields":{"custom_boolean":true}},"schema":"Resources","type":"Write","typeHint":"Resources","writeEventAction":"CustomField"},"deviceIdentifier":"***","eventSchemaVersion":1,"isDraft":false,"projectionId":"sk_f68824f0fd34429eab6861d610578779|00141632-52f0-4e9c-a269-36d829155ca6","resourceId":"00053e7f-2057-4959-88a6-8c1378d3c85f","sessionIdentifier":"***","tenantId":"sk_f68824f0fd34429eab6861d610578779","timeWritten":"2023-05-05T08:11:33.797Z","type":"ClientEvent","uid":"36633b80-b30b-4293-bee5-2d18b819f880"}""")
             )
         )
 
