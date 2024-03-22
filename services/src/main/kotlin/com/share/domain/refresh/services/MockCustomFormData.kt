@@ -15,26 +15,8 @@ fun postInstanceData(): JsonObject {
                 {
                   "UID": "dynamic_1",
                   "__managedSource": 1 
-                },
-                {
-                  "UID": "dynamic_2",
-                  "__managedSource": 1
-                }, 
-                {
-                  "UID": "real_3",
-                  "__managedSource": 2 
-                },
-                {
-                  "UID": "real_4",
-                   "__managedSource": 3 
                 }
-              ],
-              "accidentIncidentReports": [
-              {
-                  "UID": "dynamic_17032084382843",
-                  "__managedSource": 1
-                }
-             ]
+              ]
             }
           }
         }""".fromJson<JsonObject>()

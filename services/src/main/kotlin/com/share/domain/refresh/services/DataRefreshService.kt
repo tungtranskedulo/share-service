@@ -50,7 +50,14 @@ class DataRefreshService(
     }
 
     suspend fun run() : Any {
+        //return customFormService.getCustomForm()
         return customFormService.saveCustomFormData("formId1", emptyJsonObject())
+        //return customFormService.processEventsForDevice()
+    }
+
+    suspend fun updateToken(tokenId: String) : Any {
+        return customFormService.updateToken(tokenId)
+        //return customFormService.saveCustomFormData("formId1", emptyJsonObject())
         //return customFormService.processEventsForDevice()
     }
 

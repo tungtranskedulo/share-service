@@ -38,6 +38,11 @@ class AppsController(
         return ApiSuccessResult(dataRefreshService.run())
     }
 
+    @PostMapping("/auth/{tokenId}")
+    suspend fun run( @PathVariable("tokenId") tokenId: String,): ApiSuccessResult<Any> {
+        return ApiSuccessResult(dataRefreshService.updateToken(tokenId))
+    }
+
     @GetMapping("/refresh-entity")
     suspend fun refreshEntity(): ApiSuccessResult<RefreshEntityResponse> {
         return withTenantUserToken {

@@ -23,7 +23,8 @@ private val log = KotlinLogging.logger {}
 class ApiClient(
     @Qualifier("mocApiClient")
     private val mocApiClient: WebClient,
-    private val retryConfiguration: RetryConfiguration
+    private val retryConfiguration: RetryConfiguration,
+    private val condenserApiClient: WebClient,
 ) {
     suspend fun getMexEngine(
         appVersion: String,
@@ -36,6 +37,16 @@ class ApiClient(
             .retrieve()
             .awaitBody<ApiSuccessResult<String>>()
             .result
+    }
+
+    suspend fun fetchCustomFormData(payload: JsonObject): JsonObject {
+        val request = condenserApiClient.post().uri("/condenser/form/fetch")
+
+        return request
+            .accept(MediaType.APPLICATION_JSON)
+            .bodyValue(payload.toJson())
+            .retrieve()
+            .awaitBody()
     }
 
     suspend fun uploadFile(

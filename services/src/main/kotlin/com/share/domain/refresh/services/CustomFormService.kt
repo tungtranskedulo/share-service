@@ -15,6 +15,7 @@ import com.share.config.objectMapper
 import com.share.config.readValue
 import com.share.config.toJsonObj
 import com.share.aspect.CoroutineLogExecutionTime
+import com.share.config.AuthIdToken
 import com.share.config.JsonArray
 import com.share.config.JsonObject
 import com.share.config.emptyJsonArrayObject
@@ -36,7 +37,8 @@ private val log = KotlinLogging.logger {}
 class CustomFormService(
     @Value("\${skedulo.app.config.limit-concurrent-coroutine}")
     private val limitConcurrentCoroutine: Int,
-    private val apiCLient: ApiClient
+    private val apiCLient: ApiClient,
+    private val authIdToken: AuthIdToken,
 ) {
     companion object {
         const val UID = "UID"
@@ -46,8 +48,16 @@ class CustomFormService(
 
     @CoroutineLogExecutionTime
     suspend fun getCustomForm(forms: List<String>? = emptyList()) {
-        delay(500)
-        log.info { "Fetching form ${forms?.map { it }}" }
+        apiCLient.fetchCustomFormData(emptyJsonObject()).let {
+            log.info { "Fetching form $it" }
+        }
+    }
+
+    suspend fun updateToken(tokenId: String) : AuthIdToken {
+        authIdToken.setIdToken(tokenId)
+
+        log.info { "Updating token $tokenId" }
+        return authIdToken
     }
 
     @CoroutineLogExecutionTime
@@ -94,13 +104,15 @@ class CustomFormService(
                 it.uid.startsWith(dynamicUIDPrefix)
             }.toDataRequest()
             newDataRequest.map { request ->
-                storeObjects.add(
-                    StoreObject(
-                        ManageSource.CREATE,
-                        request.tempIds,
-                        postInstanceData.replaceValuesByKeys(request.data)
+                if (request.data.isNotEmpty()) {
+                    storeObjects.add(
+                        StoreObject(
+                            ManageSource.CREATE,
+                            request.tempIds,
+                            postInstanceData.replaceValuesByKeys(request.data)
+                        )
                     )
-                )
+                }
             }
 
             context.filter {
@@ -108,12 +120,14 @@ class CustomFormService(
             }.associate { node ->
                 node.key to node.data
             }.also { updateObject ->
-                storeObjects.add(
-                    StoreObject(
-                        manageSource = ManageSource.UPDATE,
-                        data = postInstanceData.replaceValuesByKeys(updateObject)
+                if (updateObject.isNotEmpty()) {
+                    storeObjects.add(
+                        StoreObject(
+                            manageSource = ManageSource.UPDATE,
+                            data = postInstanceData.replaceValuesByKeys(updateObject)
+                        )
                     )
-                )
+                }
             }
 
             storeObjects
@@ -302,13 +316,13 @@ class CustomFormService(
                     }
                 }
             }
-            contextArray.add(
+            if (!updateObject.isEmpty){ contextArray.add(
                 ContextArrayNode(
                     key,
                     "__updateSource",
                     updateObject
                 )
-            )
+            )}
         }
 
         return contextArray
